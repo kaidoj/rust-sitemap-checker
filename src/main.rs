@@ -16,8 +16,13 @@ async fn load_sitemap(sitemap_location: &str) -> Result<String, Box<dyn Error>> 
 #[tokio::main]
 async fn load_robots_txt(website_url: &str) ->  String {
     let url: String = [website_url, "/robots.txt"].join("");
+
+    info!("Looking for robots.txt at {}", url);
+
     let resp = reqwest::get(url).await.unwrap();
     let body = resp.text().await.unwrap();
+
+    info!("robots.txt content {}", body.replace("\n", ""));
 
     return body
 }
