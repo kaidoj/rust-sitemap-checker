@@ -755,6 +755,7 @@ dependencies = [
  "dotenv",
  "env_logger",
  "log",
+ "regex",
  "reqwest",
  "tokio",
 ]
