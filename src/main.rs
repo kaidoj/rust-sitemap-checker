@@ -9,33 +9,41 @@ use regex::Regex;
 async fn load_sitemap(sitemap_location: &str) -> Result<String, Box<dyn Error>> {
     let resp = reqwest::get(sitemap_location).await?;
     let body = resp.text().await?;
-
     Ok(body)
 }
 
 #[tokio::main]
-async fn load_robots_txt(website_url: &str) ->  String {
+async fn load_robots_txt(website_url: &str) ->  Result<String, Box<dyn Error>> {
     let url: String = [website_url, "/robots.txt"].join("");
 
     info!("Looking for robots.txt at {}", url);
 
-    let resp = reqwest::get(url).await.unwrap();
-    let body = resp.text().await.unwrap();
+    let resp = reqwest::get(url).await?;
+    let body = resp.text().await?;
 
     info!("robots.txt content {}", body.replace("\n", ""));
 
-    return body
+    Ok(body)
 }
 
 fn get_crawl_delay_from_robots_txt(website_url: &str ) -> Option<i8>  {
-    let body = load_robots_txt(website_url);
-    let re = Regex::new("Crawl-delay:s+(d+)$").unwrap();
-    let Some(matches) = re.captures(&body) else {
-        return None;
-    };
-
-    println!("Matches {:?}", matches);
-
+    match load_robots_txt(website_url) {
+        Ok(body) => {
+            match Regex::new(r"Crawl-delay:\s+(\d+)$") {
+                Ok(re) => {
+                    if let Some(matches) = re.captures(&body) {
+                        println!("Matches {:?}", matches);
+                    }
+                },
+                Err(e) => {
+                    warn!("Crawl-delay not found in robots.txt {}", e);
+                }
+            }        
+        },
+        Err(e) => {
+            warn!("robots.txt not found {}", e);
+        }
+    }
     return None;
 }
 
@@ -62,5 +70,13 @@ fn main() {
     }
     
     let result = load_sitemap(&sitemap_location);
-    info!("{:?}", result)
+    match result {
+        Ok(body) => {
+            info!("Sitemap body: {}", body.replace("\n", ""))
+        },
+        Err(_e) => {
+            panic!("Could not load sitemap from location {}", sitemap_location)
+        }
+    }
+
 }
