@@ -57,6 +57,7 @@ fn main() {
 
     info!("Website url environment variable loaded {}", website_url);
     info!("Sitemap location environment variable loaded {}", sitemap_location);
+    info!("Crawl Delay environment variable loaded with value {} seconds", crawl_delay);
 
     let robots_txt_crawl_delay = get_crawl_delay_from_robots_txt(&website_url);
     match robots_txt_crawl_delay {
