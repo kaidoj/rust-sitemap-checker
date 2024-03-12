@@ -3,7 +3,7 @@ use dotenv::dotenv;
 use log::info;
 use log::warn;
 use regex::Regex;
-
+use roxmltree::Document;
 
 #[tokio::main]
 async fn load_sitemap(sitemap_location: &str) -> Result<String, Box<dyn Error>> {
@@ -47,6 +47,16 @@ fn get_crawl_delay_from_robots_txt(website_url: &str ) -> Option<i8>  {
     return None;
 }
 
+fn parse_sitemap(sitemap: &str) -> Vec<String> {
+    let mut urls = Vec::new();
+    let doc = Document::parse(sitemap).unwrap();
+    for node in doc.descendants() {
+        if node.tag_name().name() == "loc" {
+            urls.push(node.text().unwrap().to_string());
+        }
+    }
+    urls
+}
 
 fn main() {
     dotenv().ok();
@@ -73,7 +83,11 @@ fn main() {
     let result = load_sitemap(&sitemap_location);
     match result {
         Ok(body) => {
-            info!("Sitemap body: {}", body.replace("\n", ""))
+            info!("Sitemap body: {}", body.replace("\n", ""));
+            let urls = parse_sitemap(&body);
+
+            println!("Sitemap urls: {:?}", urls);
+
         },
         Err(_e) => {
             panic!("Could not load sitemap from location {}", sitemap_location)
