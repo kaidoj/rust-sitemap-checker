@@ -86,7 +86,7 @@ fn main() {
             info!("Sitemap body: {}", body.replace("\n", ""));
             let urls = parse_sitemap(&body);
 
-            println!("Sitemap urls: {:?}", urls);
+            info!("Sitemap urls: {:?}", urls);
 
         },
         Err(_e) => {
