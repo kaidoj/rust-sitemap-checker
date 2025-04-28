@@ -47,15 +47,24 @@ fn get_crawl_delay_from_robots_txt(website_url: &str ) -> Option<i8>  {
     return None;
 }
 
-fn parse_sitemap(sitemap: &str) -> Vec<String> {
+fn parse_sitemap(sitemap: &str) -> Result<Vec<String>, roxmltree::Error> {
     let mut urls = Vec::new();
-    let doc = Document::parse(sitemap).unwrap();
-    for node in doc.descendants() {
-        if node.tag_name().name() == "loc" {
-            urls.push(node.text().unwrap().to_string());
+    match Document::parse(sitemap) {
+        Ok(doc) => {
+            for node in doc.descendants() {
+                if node.tag_name().name() == "loc" {
+                    if let Some(text) = node.text() {
+                        urls.push(text.to_string());
+                    }
+                }
+            }
+            Ok(urls)
+        },
+        Err(e) => {
+            warn!("Sitemap not found or error parsing sitemap: {}", e);
+            Err(e)
         }
     }
-    urls
 }
 
 fn main() {
